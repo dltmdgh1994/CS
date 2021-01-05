@@ -23,7 +23,8 @@
 | 2층           | Datalink layer          |NetWork InterFace |
 | 1층           | Physical layer          |NetWork InterFace |
 
-### 4.(1)계층-물리계층(Physical)
+
+##1계층-물리계층(Physical)
 
 전기적, 기계적, 기능적인 특성을 이용해서 통신 케이블로 데이터 전송 층
 단위 비트는 1,0 --> 전기적으로 on,off 상태
