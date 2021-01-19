@@ -352,3 +352,128 @@ A. Connection을 맺을 때 사용하는 포트(Port)는 유한 범위 내에서
       - HTTP는 비연결형으로 웹 페이지를 보는 중 인터넷 연결이 끊겼다가 다시 연결되어도 페이지를 계속 볼 수 있다.
       - 그러나 HTTPS의 경우에는 소켓(데이터를 주고 받는 경로) 자체에서 인증을 하기 때문에 인터넷 연결이 끊기면 소켓도 끊어져서 다시 HTTPS 인증이 필요하다.
 
+
+
+## 7. HTTP 요청 응답 헤더
+
+![HTTP-Header](md-images/HTTP-Header.png)
+
+### 1. General Header
+
+요청 및 응답 메시지 모두에서 사용 가능한 일반 목적의(기본적인) 헤더 항목
+
+- **Date** : HTTP 메시지를 생성한 일시 (RFC 1123에서 규정)
+  - `Date: Sat, 2 Oct 2018 02:00:12 GMT`
+- **Connection** : 클라이언트와 서버 간 연결에 대한 옵션 설정(다소 모호한 복잡성 있음)
+  - `Connection: close` => 현재 HTTP 메시지 직후에 TCP 접속을 끊는다는 것을 알림
+  - `Connection: Keep-Alive` => 현재 TCP 커넥션을 유지
+- **Cache-Control** : 요청과 응답 내의 캐싱 메커니즘을 위한 디렉티브를 정하기 위해 사용
+- **Pragma** : HTTP/1.0 버전에서 HTTP/1.1 버전의 `Cache-Control` 헤더가 생기기 전 그것  과 동일한 역할을 하는 대용 헤더로 사용
+- **Trailer** : 메시지 무결성 검사, 디지털 서명 또는 사후 처리 상태와 같이 메시지 본문이 전송되는 동안 동적으로 생성 될 수있는 메타 데이터를 제공하기 위해 보낸 사람이 청크 메시지 끝에 추가 필드를 포함하도록 함
+
+
+
+### 2. Entity Header
+
+요청 및 응답 메시지 모두에서 사용 가능한 Entity(콘텐츠, 본문, 리소스 등)에 대한 설명 헤더
+
+- **Content-Type** : 해당 개체에 포함되는 미디어 타입 정보
+- 컨텐츠의 타입(MIME 미디어 타입) 및 문자 인코딩 방식(EUC-KR,UTF-8 등)을 지정
+  - 타입 및 서브타입(type/subtype)으로 구성
+- `Content-Type: text/html; charset-latin-1` => 해당 개체가 html으로 표현된 텍스트 문서이고, iso-latin-1 문자 인코딩 방식으로 표현됨
+- **Content-Language**: 해당 개체와 가장 잘 어울리는 사용자 언어(자연언어)
+- **Content-Encoding** : 해당 개체 데이터의 압축 방식
+- `Content-Encoding: gzip, deflate`
+  - 만일 압축이 시행되었다면, Content-Encoding 및 Content-Length 2개 항목을 토대로 압축 해제 가능
+- **Content-Length** : 전달되는 해당 개체의 바이트 길이 또는 크기(10진수)
+- 응답 메시지 Body의 길이를 지정하거나, 특정 지정된 개체의 길이를 지정함
+- **Content-Location** : 해당 개체가 실제 어디에 위치하는가를 알려줌
+- **Content-Disposition** : 응답 Body를 브라우저가 어떻게 표시해야 할지 알려주는 헤더
+- inline인 경우 웹페이지 화면에 표시되고, attachment인 경우 다운로드
+  - `Content-Disposition: inline`
+- `Content-Disposition: attachment; filename='filename.csv'`
+  - 파일용 서버인 경우 이 태그를 자주 사용
+- **Content-Security-Policy** : 다른 외부 파일들을 불러오는 경우, 차단할 소스와 불러올 소스를 명시
+- *XSS 공격*에 대한 방어 가능 (허용한 외부 소스만 지정 가능)
+  - `Content-Security-Policy: default-src https:` => https를 통해서만 파일을 가져옴
+- `Content-Security-Policy: default-src 'self'` => 자신의 도메인의 파일들만 가져옴
+  - `Content-Security-Policy: default-src 'none'` => 파일을 가져올 수 없음
+- **Location** : 리소스가 리다이렉트(redirect)된 때에 이동된 주소, 또는 새로 생성된 리소스 주소
+- 300번대 응답이나 201 Created 응답일 때 어느 페이지로 이동할지를 알려주는 헤더
+  
+- 새로 생성된 경우에 HTTP 상태 코드 `201 Created`가 반환됨
+  
+- `HTTP/1.1 302 Found Location: /`
+  - 이런 응답이 왔다면 브라우저는 / 주소로 redirect한다.
+- **Last-Modified**: 리소스를 마지막으로 갱신한 일시
+- 다음 4개는 주로 HTTP 메세지 Body의 속성 또는 내용 협상용 항목들
+  - **Accept** : 클라이언트 자신이 원하는 미디어 타입 및 우선순위를 알림
+    - `Accept: */*` => 어떤 미디어 타입도 가능
+    - `Accept: image/*` => 모든 이미지 유형
+  - **Accept-Charset**: 클라이언트 자신이 원하는 문자 집합
+  - **Accept-Encoding**: 클라이언트 자신이 원하는 문자 인코딩 방식
+  - **Accept-Language**: 클라이언트 자신이 원하는 가능한 언어
+  - 각각이 HTTP Entity Header 항목 중에 `Content-Type, Content-Type charset-xxx, Content-Encoding, Content-Language`과 일대일로 대응됨
+
+
+
+### 3. Request Header
+
+요청 헤더는 HTTP 요청 메시지 내에서만 나타나며 가장 방대하다.
+
+- **Host(필수)** : 요청하는 호스트에 대한 호스트명 및 포트번호
+  - Host 필드에 도메인명 및 호스트명 모두를 포함한 전체 URI(FQDN) 지정 필요
+  - 이에 따라 동일 IP 주소를 갖는 단일 서버에 여러 사이트가 구축 가능
+- **User-Agent** : 클라이언트 소프트웨어(브라우저, OS) 명칭 및 버전 정보
+- **From** : 클라이언트 사용자 메일 주소
+  - 주로 검색엔진 웹 로봇의 연락처 메일 주소를 나타냄
+  - 때로는, 이 연락처 메일 주소를 User-Agent 항목에 두는 경우도 있음
+- **Cookie** : 서버에 의해 Set-Cookie로 클라이언트에게 설정된 쿠키 정보
+- **Referer** : 바로 직전에 머물었던 웹 링크 주소
+- **If-Modified-Since** : 제시한 일시 이후로만 변경된 리소스를 취득 요청
+- **Authorization** : 인증 토큰(JWT/Bearer 토큰)을 서버로 보낼 때 사용하는 헤더
+  - 토큰의 종류(Basic, Bearer 등) + 실제 토큰 문자를 전송
+- **Origin** : 서버로 POST 요청을 보낼 때, 요청이 어느 주소에서 시작되었는지 나타냄
+  - 여기서 요청을 보낸 주소와 받는 주소가 다르면 *CORS 에러*가 발생
+  - 응답 헤더의 **Access-Control-Allow-Origin**와 관련
+
+
+
+### 4. Response Header
+
+특정 유형의 HTTP 요청이나 특정 HTTP 헤더를 수신했을 때, 이에 응답한다.
+
+- **Server**: 서버 소프트웨어 정보
+
+- **Accept-Range** : 범위를 정의하기 위해 사용될 수 있는 단위로 헤더가 존재하면, 브라우저는 처음부터 다시 다운로드를 시작하지 않고, 중단된 다운로드를 재개함
+
+- **Set-Cookie**: 서버측에서 클라이언트에게 세션 쿠키 정보를 설정 (RFC 2965에서 규정)
+
+- **Expires**: 리소스가 지정된 일시까지 캐시로써 유효함
+
+- **Age**: 캐시 응답. max-age 시간 내에서 얼마나 흘렀는지 알려줌(초 단위)
+
+- **ETag**: HTTP 컨텐츠가 바뀌었는지를 검사할 수 있는 태그
+
+- **Proxy-authenticate** : 프록시 서버 뒤에있는 리소스에 액세스하는 데 사용해야하는 인증 방법을 정의
+
+- **Allow** : 해당 엔터티에 대해 서버 측에서 지원 가능한 HTTP 메소드의 리스트를 나타냄
+
+  - 때론, HTTP 요청 메세지의 HTTP 메소드 OPTIONS에 대한 응답용 항목
+
+    OPTIONS : 웹서버측 제공 HTTP 메소드에 대한 질의
+  - `Allow: GET,HEAD` => 웹 서버측이 제공 가능한 HTTP 메서드는 GET,HEAD 뿐임을 알림 (405 Method Not Allowed 에러와 함께)
+
+- **Access-Control-Allow-Origin** : 요청을 보내는 프론트 주소와 받는 백엔드 주소가 다르면 CORS 에러가 발생
+
+  - 서버에서 이 헤더에 프론트 주소를 적어주어야 에러가 나지 않는다.
+
+  - `Access-Control-Allow-Origin: www.zerocho.com`
+
+    프로토콜, 서브도메인, 도메인, 포트 중 하나만 달라도 CORS 에러가 난다.
+
+  - `Access-Control-Allow-Origin: *`
+
+    만약 주소를 일일이 지정하기 싫다면 *으로 모든 주소에 CORS 요청을 허용되지만 그만큼 보안이 취약해진다.
+
+  - 유사한 헤더로 `Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Allow-Methods, Access-Control-Allow-Headers` 등이 있다.
